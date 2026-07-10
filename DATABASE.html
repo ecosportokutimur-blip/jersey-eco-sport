@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECO SPORT - Database Upload Video & Foto</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script>tailwind.config={theme:{extend:{fontFamily:{inter:['Inter','sans-serif']},colors:{brand:{red:'#dc2626',gold:'#eab308',darkgold:'#ca8a04',darkred:'#991b1b'}}}}}</script>
+<style>
+*{font-family:'Inter',sans-serif}::selection{background:rgba(234,179,8,.3);color:#fde047}::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#050505}::-webkit-scrollbar-thumb{background:#333;border-radius:4px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+@keyframes breathe{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.7;transform:scale(1.1)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.gradient-text{background:linear-gradient(to bottom,#fff,#eab308);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.toast{transform:translateX(120%);transition:transform .4s cubic-bezier(.16,1,.3,1)}.toast.show{transform:translateX(0)}
+.spinner{width:20px;height:20px;border:2.5px solid rgba(255,255,255,.15);border-top-color:#eab308;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;vertical-align:middle}
+.upload-zone{transition:all .3s;border:2px dashed rgba(255,255,255,.1);border-radius:16px}.upload-zone:hover{border-color:rgba(234,179,8,.3)!important;background:rgba(234,179,8,.02)!important}.upload-zone.has-file{border-color:rgba(234,179,8,.5)!important;background:rgba(234,179,8,.03)!important}
+.db-card{background:rgba(23,23,23,.5);border:1px solid rgba(255,255,255,.05);border-radius:16px;transition:all .3s}.db-card:hover{border-color:rgba(234,179,8,.2);box-shadow:0 0 30px -10px rgba(234,179,8,.15)}
+.btn-primary{background:linear-gradient(135deg,#dc2626,#b91c1c);transition:all .3s}.btn-primary:hover{background:linear-gradient(135deg,#ef4444,#dc2626);transform:scale(1.02);box-shadow:0 0 25px rgba(220,38,38,.4)}
+.btn-gold{background:linear-gradient(135deg,#eab308,#ca8a04);color:#000;transition:all .3s}.btn-gold:hover{background:linear-gradient(135deg,#facc15,#eab308);transform:scale(1.02);box-shadow:0 0 25px rgba(234,179,8,.4)}
+.btn-danger{background:linear-gradient(135deg,#dc2626,#991b1b);transition:all .3s}.btn-danger:hover{transform:scale(1.02);box-shadow:0 0 20px rgba(220,38,38,.3)}
+input:focus,textarea:focus,select:focus{outline:none;border-color:#eab308!important;box-shadow:0 0 0 2px rgba(234,179,8,.2)}
+.modal-overlay{display:none;position:fixed;inset:0;z-index:260;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);justify-content:center;align-items:center}.modal-overlay.active{display:flex}
+.video-thumb-wrap{position:relative;overflow:hidden;border-radius:12px}.video-thumb-wrap video{width:100%;height:100%;object-fit:cover;display:block}
+.play-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:rgba(220,38,38,.85);display:flex;align-items:center;justify-content:center;pointer-events:none}
+.progress-bar{height:4px;border-radius:2px;background:rgba(255,255,255,.1);overflow:hidden}.progress-fill{height:100%;background:linear-gradient(90deg,#dc2626,#eab308);border-radius:2px;transition:width .3s}
+.stat-pill{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px 20px;transition:all .3s}.stat-pill:hover{border-color:rgba(234,179,8,.2)}
+select option{background:#111;color:#fff}
+</style>
+</head>
+<body class="bg-[#050505] text-white font-inter antialiased overflow-x-hidden min-h-screen">
+
+<!-- TOAST -->
+<div id="toast" class="toast fixed top-6 right-6 z-[300] bg-neutral-900 border border-brand-gold/30 rounded-xl p-4 flex items-center gap-3 shadow-2xl max-w-sm">
+<iconify-icon id="toast-icon" icon="mdi:check-circle" class="text-green-500 text-2xl flex-shrink-0"></iconify-icon>
+<span id="toast-msg" class="text-sm text-neutral-200"></span>
+</div>
+
+<!-- HEADER -->
+<nav class="fixed top-0 left-0 right-0 z-50 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5">
+<div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-red to-brand-gold flex items-center justify-center font-black text-sm text-white">ECO</div>
+<span class="text-lg font-bold tracking-tight">ECO<span class="text-brand-gold">SPORT</span></span>
+<span class="hidden sm:inline text-[10px] font-semibold tracking-widest uppercase text-neutral-600 ml-2 border-l border-white/10 pl-3">Database Manager</span>
+</div>
+<div class="flex items-center gap-3">
+<span id="db-status" class="text-[10px] font-semibold px-3 py-1 rounded-full bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-yellow-500" style="animation:pulse 1.5s infinite"></span> Menunggu...
+</span>
+<button onclick="exportDB()" class="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-gold/10 hover:text-brand-gold transition-all" title="Export Data">
+<iconify-icon icon="mdi:download-outline" class="text-base"></iconify-icon>
+</button>
+<button onclick="showImportModal()" class="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-gold/10 hover:text-brand-gold transition-all" title="Import Data">
+<iconify-icon icon="mdi:upload-outline" class="text-base"></iconify-icon>
+</button>
+</div>
+</div>
+</nav>
+
+<!-- MAIN -->
+<main class="pt-24 pb-16 px-4 sm:px-6 max-w-6xl mx-auto">
+
+<!-- STATISTIK -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" id="stats-row">
+<div class="stat-pill text-center">
+<iconify-icon icon="mdi:image-multiple-outline" class="text-2xl text-brand-gold mb-2"></iconify-icon>
+<div class="text-2xl font-black" id="stat-img">0</div>
+<div class="text-[10px] font-semibold tracking-widest uppercase text-neutral-500 mt-1">Foto</div>
+</div>
+<div class="stat-pill text-center">
+<iconify-icon icon="mdi:video-outline" class="text-2xl text-brand-red mb-2"></iconify-icon>
+<div class="text-2xl font-black" id="stat-vid">0</div>
+<div class="text-[10px] font-semibold tracking-widest uppercase text-neutral-500 mt-1">Video</div>
+</div>
+<div class="stat-pill text-center">
+<iconify-icon icon="mdi:harddisk" class="text-2xl text-blue-400 mb-2"></iconify-icon>
+<div class="text-2xl font-black" id="stat-size">0 KB</div>
+<div class="text-[10px] font-semibold tracking-widest uppercase text-neutral-500 mt-1">Total Ukuran</div>
+</div>
+<div class="stat-pill text-center">
+<iconify-icon icon="mdi:database-outline" class="text-2xl text-purple-400 mb-2"></iconify-icon>
+<div class="text-2xl font-black" id="stat-total">0</div>
+<div class="text-[10px] font-semibold tracking-widest uppercase text-neutral-500 mt-1">Total File</div>
+</div>
+</div>
+
+<!-- UPLOAD AREA -->
+<div class="db-card p-6 md:p-8 mb-8">
+<div class="flex items-center justify-between mb-6">
+<div>
+<h2 class="text-xl font-bold flex items-center gap-2"><iconify-icon icon="mdi:cloud-upload-outline" class="text-brand-gold"></iconify-icon> Upload File</h2>
+<p class="text-xs text-neutral-500 mt-1">Foto (JPG, PNG, WebP) & Video (MP4, MOV, WebM) — disimpan permanen di IndexedDB</p>
+</div>
+<div class="flex items-center gap-2">
+<select id="upload-cat" class="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-xs text-neutral-300 appearance-none cursor-pointer">
+<option value="umum">Umum</option>
+<option value="sepak-bola">Sepak Bola</option>
+<option value="futsal">Futsal</option>
+<option value="voli">Voli</option>
+<option value="badminton">Badminton</option>
+<option value="esport">Esport</option>
+<option value="komunitas">Komunitas</option>
+</select>
+</div>
+</div>
+
+<!-- Drop Zone -->
+<div id="drop-zone" class="upload-zone p-8 md:p-12 text-center cursor-pointer mb-6" onclick="document.getElementById('file-input').click()">
+<input type="file" id="file-input" class="hidden" accept="image/*,video/*" multiple onchange="handleFiles(this.files)">
+<iconify-icon icon="mdi:cloud-upload-outline" class="text-5xl text-neutral-700 mb-3"></iconify-icon>
+<p class="text-sm font-semibold text-neutral-400">Klik atau seret file ke sini</p>
+<p class="text-[10px] text-neutral-600 mt-2">Mendukung banyak file sekaligus • Maks ~50MB per file</p>
+</div>
+
+<!-- Progress -->
+<div id="progress-area" class="hidden mb-6">
+<div class="flex items-center justify-between mb-2">
+<span class="text-xs font-semibold text-neutral-400" id="progress-label">Mengupload...</span>
+<span class="text-xs font-bold text-brand-gold" id="progress-pct">0%</span>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+</div>
+
+<!-- Quick Upload Grid -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="upload-zone p-4 text-center cursor-pointer min-h-[130px] flex flex-col items-center justify-center" onclick="document.getElementById('qi-logo').click()" id="zone-logo">
+<input type="file" id="qi-logo" class="hidden" accept="image/*" onchange="handleSingleFile(this.files[0],'Logo Tim')">
+<iconify-icon icon="mdi:shield-account-outline" class="text-2xl text-neutral-600 mb-1"></iconify-icon>
+<p class="text-[10px] font-semibold text-neutral-400">Logo Tim</p>
+<div id="preview-logo" class="mt-2 w-full"></div>
+</div>
+<div class="upload-zone p-4 text-center cursor-pointer min-h-[130px] flex flex-col items-center justify-center" onclick="document.getElementById('qi-desain').click()" id="zone-desain">
+<input type="file" id="qi-desain" class="hidden" accept="image/*" onchange="handleSingleFile(this.files[0],'Desain Jersey')">
+<iconify-icon icon="mdi:palette-outline" class="text-2xl text-neutral-600 mb-1"></iconify-icon>
+<p class="text-[10px] font-semibold text-neutral-400">Desain Jersey</p>
+<div id="preview-desain" class="mt-2 w-full"></div>
+</div>
+<div class="upload-zone p-4 text-center cursor-pointer min-h-[130px] flex flex-col items-center justify-center" onclick="document.getElementById('qi-ref').click()" id="zone-ref">
+<input type="file" id="qi-ref" class="hidden" accept="image/*" onchange="handleSingleFile(this.files[0],'Referensi')">
+<iconify-icon icon="mdi:image-multiple-outline" class="text-2xl text-neutral-600 mb-1"></iconify-icon>
+<p class="text-[10px] font-semibold text-neutral-400">Referensi</p>
+<div id="preview-ref" class="mt-2 w-full"></div>
+</div>
+<div class="upload-zone p-4 text-center cursor-pointer min-h-[130px] flex flex-col items-center justify-center border-brand-red/20" onclick="document.getElementById('qi-vid').click()" id="zone-vid">
+<input type="file" id="qi-vid" class="hidden" accept="video/*" onchange="handleSingleFile(this.files[0],'Video Produksi')">
+<iconify-icon icon="mdi:video-outline" class="text-2xl text-neutral-600 mb-1"></iconify-icon>
+<p class="text-[10px] font-semibold text-neutral-400">Video</p>
+<p class="text-[8px] text-neutral-600">MP4, MOV</p>
+<div id="preview-vid" class="mt-2 w-full"></div>
+</div>
+</div>
+</div>
+
+<!-- FILTER & SEARCH -->
+<div class="flex flex-wrap items-center gap-3 mb-6">
+<div class="flex-1 min-w-[200px] relative">
+<iconify-icon icon="mdi:magnify" class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-600"></iconify-icon>
+<input type="text" id="search-input" placeholder="Cari file..." class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-neutral-600" oninput="renderGallery()">
+</div>
+<div class="flex flex-wrap gap-2" id="filter-btns">
+<button onclick="setFilter('semua')" class="filter-btn active text-[10px] font-bold tracking-wider uppercase px-4 py-2 rounded-lg border border-white/10 bg-gradient-to-r from-brand-gold to-brand-darkgold text-black transition-all" data-f="semua">Semua</button>
+<button onclick="setFilter('image')" class="filter-btn text-[10px] font-bold tracking-wider uppercase px-4 py-2 rounded-lg border border-white/10 bg-white/5 text-neutral-400 hover:text-white transition-all" data-f="image">Foto</button>
+<button onclick="setFilter('video')" class="filter-btn text-[10px] font-bold tracking-wider uppercase px-4 py-2 rounded-lg border border-white/10 bg-white/5 text-neutral-400 hover:text-white transition-all" data-f="video">Video</button>
+</div>
+<button onclick="deleteSelected()" id="btn-del-sel" class="hidden btn-danger text-[10px] font-bold tracking-wider uppercase px-4 py-2 rounded-lg flex items-center gap-1.5">
+<iconify-icon icon="mdi:delete-outline" class="text-sm"></iconify-icon> Hapus Terpilih (<span id="sel-count">0</span>)
+</button>
+<button onclick="selectAll()" class="text-[10px] font-bold tracking-wider uppercase px-4 py-2 rounded-lg border border-white/10 bg-white/5 text-neutral-400 hover:text-white transition-all">Pilih Semua</button>
+</div>
+
+<!-- GALLERY GRID -->
+<div id="gallery-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8"></div>
+
+<!-- EMPTY STATE -->
+<div id="empty-state" class="hidden text-center py-20">
+<iconify-icon icon="mdi:database-off-outline" class="text-6xl text-neutral-800 mb-4"></iconify-icon>
+<p class="text-lg font-bold text-neutral-600">Belum ada file</p>
+<p class="text-sm text-neutral-700 mt-1">Upload foto atau video untuk memulai</p>
+</div>
+
+</main>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" class="fixed inset-0 z-[200] bg-black/95 hidden" onclick="if(event.target===this)closeLightbox()">
+<button onclick="closeLightbox()" class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 z-10 transition-all">
+<iconify-icon icon="mdi:close" class="text-xl text-white"></iconify-icon>
+</button>
+<button onclick="lbPrev()" class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 z-10 transition-all">
+<iconify-icon icon="mdi:chevron-left" class="text-2xl text-white"></iconify-icon>
+</button>
+<button onclick="lbNext()" class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 z-10 transition-all">
+<iconify-icon icon="mdi:chevron-right" class="text-2xl text-white"></iconify-icon>
+</button>
+<div id="lb-content" class="absolute inset-0 flex items-center justify-center p-8"></div>
+<div id="lb-info" class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-6">
+<p id="lb-title" class="text-sm font-bold"></p>
+<p id="lb-meta" class="text-[10px] text-neutral-500 mt-1"></p>
+</div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div id="import-modal" class="modal-overlay" onclick="if(event.target===this)closeImportModal()">
+<div class="bg-[#111] border border-white/10 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto mx-4 p-6" style="animation:fadeUp .3s ease">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-lg font-bold flex items-center gap-2"><iconify-icon icon="mdi:upload-outline" class="text-brand-gold"></iconify-icon> Import Data</h3>
+<button onclick="closeImportModal()" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-white/10"><iconify-icon icon="mdi:close"></iconify-icon></button>
+</div>
+<div class="upload-zone p-8 text-center cursor-pointer" onclick="document.getElementById('import-file').click()">
+<input type="file" id="import-file" class="hidden" accept=".json" onchange="importJSON(this.files[0])">
+<iconify-icon icon="mdi:file-json-outline" class="text-4xl text-neutral-600 mb-3"></iconify-icon>
+<p class="text-sm font-semibold text-neutral-400">Pilih file JSON backup</p>
+<p class="text-[10px] text-neutral-600 mt-1">File yang diekspor sebelumnya</p>
+</div>
+<div class="mt-4 p-3 rounded-xl bg-yellow-500/5 border border-yellow-500/10">
+<p class="text-[10px] text-yellow-500/80 flex items-start gap-2"><iconify-icon icon="mdi:alert-circle-outline" class="text-sm flex-shrink-0 mt-0.5"></iconify-icon> Import akan menambahkan file, tidak menghapus yang sudah ada. File binary (foto/video) tidak bisa diimport via JSON — hanya metadata saja.</p>
+</div>
+</div>
+</div>
+
+<!-- VIDEO PLAYER MODAL -->
+<div id="video-modal" class="modal-overlay" onclick="if(event.target===this)closeVideoModal()">
+<div class="bg-black rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden mx-4" style="animation:fadeUp .3s ease">
+<div class="flex items-center justify-between p-4 border-b border-white/10">
+<h3 id="vm-title" class="text-sm font-bold flex items-center gap-2"><iconify-icon icon="mdi:play-circle" class="text-brand-red"></iconify-icon> Video</h3>
+<button onclick="closeVideoModal()" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-white/10"><iconify-icon icon="mdi:close"></iconify-icon></button>
+</div>
+<div class="relative bg-black" style="aspect-ratio:16/9">
+<video id="vm-video" controls class="w-full h-full object-contain"></video>
+</div>
+</div>
+</div>
+
+<script>
+/* ================================================================
+   INDEXEDDB — DATABASE ENGINE (FIXED & ROBUST)
+   ================================================================ */
+var idb = null;
+var dbReady = false;
+var dbReadyPromise = null;
+
+function openDB() {
+  if (dbReadyPromise) return dbReadyPromise;
+  dbReadyPromise = new Promise(function(resolve, reject) {
+    try {
+      var req = indexedDB.open('EcoSportDB', 3);
+
+      req.onupgradeneeded = function(e) {
+        var d = e.target.result;
+        /* Buat object store 'media' jika belum ada */
+        if (!d.objectStoreNames.contains('media')) {
+          var store = d.createObjectStore('media', { keyPath: 'id', autoIncrement: true });
+          store.createIndex('type', 'type', { unique: false });
+          store.createIndex('category', 'category', { unique: false });
+          store.createIndex('timestamp', 'ts', { unique: false });
+        }
+        /* Buat object store 'meta' untuk metadata galeri */
+        if (!d.objectStoreNames.contains('meta')) {
+          d.createObjectStore('meta', { keyPath: 'id', autoIncrement: true });
+        }
+      };
+
+      req.onsuccess = function(e) {
+        idb = e.target.result;
+        dbReady = true;
+        /* Handle unexpected close */
+        idb.onclose = function() {
+          dbReady = false;
+          idb = null;
+          dbReadyPromise = null;
+          console.warn('IndexedDB ditutup, akan reconnect...');
+          setTimeout(function() { openDB(); }, 500);
+        };
+        idb.onerror = function(ev) {
+          console.error('DB error:', ev.target.error);
+        };
+        resolve(idb);
+      };
+
+      req.onerror = function(e) {
+        var err = e.target.error;
+        /* Jika db sudah terbuka di tab lain */
+        if (err && err.name === 'InvalidStateError') {
+          try {
+            idb = e.target.result;
+            if (idb && idb.objectStoreNames && idb.objectStoreNames.contains('media')) {
+              dbReady = true;
+              resolve(idb);
+              return;
+            }
+          } catch(ex) {}
+        }
+        console.error('Gagal buka DB:', err);
+        reject(err);
+      };
+
+      req.onblocked = function() {
+        console.warn('DB blocked — tutup tab lain yang pakai DB ini');
+      };
+
+    } catch(err) {
+      console.error('openDB exception:', err);
+      reject(err);
+    }
+  });
+  return dbReadyPromise;
+}
+
+/* Pastikan DB siap */
+async function ensureDB() {
+  if (dbReady && idb) return idb;
+  return await openDB();
+}
+
+/* ================================================================
+   CRUD OPERATIONS
+   ================================================================ */
+
+/* SIMPAN FILE BARU ke IndexedDB */
+async function dbSave(file, label, category) {
+  var db = await ensureDB();
+  return new Promise(function(resolve, reject) {
+    try {
+      var isVideo = file.type.startsWith('video/');
+      var thumb = null;
+
+      if (isVideo) {
+        thumb = await generateVideoThumb(file);
+      }
+
+      var tx = db.transaction('media', 'readwrite');
+      var store = tx.objectStore('media');
+
+      var record = {
+        file: file,
+        name: file.name,
+        label: label || file.name,
+        size: file.size,
+        mime: file.type,
+        type: isVideo ? 'video' : 'image',
+        category: category || 'umum',
+        thumb: thumb,
+        ts: Date.now()
+      };
+
+      var req = store.add(record);
+      req.onsuccess = function(e) {
+        var id = e.target.result;
+        /* Buat object URL untuk cache */
+        var url = URL.createObjectURL(file);
+        urlCache[id] = url;
+        if (isVideo && thumb) {
+          urlCache[id + '_t'] = thumb;
+        }
+        resolve(id);
+      };
+      req.onerror = function(e) {
+        console.error('dbSave error:', e.target.error);
+        reject(e.target.error);
+      };
+    } catch(err) {
+      console.error('dbSave exception:', err);
+      reject(err);
+    }
+  });
+}
+
+/* AMBIL 1 RECORD */
+async function dbGet(id) {
+  var db = await ensureDB();
+  return new Promise(function(resolve, reject) {
+    try {
+      var req = db.transaction('media', 'readonly').objectStore('media').get(id);
+      req.onsuccess = function(e) { resolve(e.target.result); };
+      req.onerror = function(e) { reject(e.target.error); };
+    } catch(e) { reject(e); }
+  });
+}
+
+/* AMBIL SEMUA RECORD */
+async function dbGetAll() {
+  var db = await ensureDB();
+  return new Promise(function(resolve, reject) {
+    try {
+      var req = db.transaction('media', 'readonly').objectStore('media').getAll();
+      req.onsuccess = function(e) { resolve(e.target.result || []); };
+      req.onerror = function(e) { reject(e.target.error); };
+    } catch(e) { reject(e); }
+  });
+}
+
+/* HAPUS 1 RECORD */
+async function dbDel(id) {
+  var db = await ensureDB();
+  return new Promise(function(resolve, reject) {
+    try {
+      /* Bersihkan object URL dari cache */
+      if (urlCache[id]) { URL.revokeObjectURL(urlCache[id]); delete urlCache[id]; }
+      if (urlCache[id + '_t']) { delete urlCache[id + '_t']; }
+
+      var req = db.transaction('media', 'readwrite').objectStore('media').delete(id);
+      req.onsuccess = function() { resolve(); };
+      req.onerror = function(e) { reject(e.target.error); };
+    } catch(e) { resolve(); }
+  });
+}
+
+/* HAPUS BANYAK */
+async function dbDelMany(ids) {
+  var db = await ensureDB();
+  return new Promise(function(resolve) {
+    try {
+      var tx = db.transaction('media', 'readwrite');
+      var store = tx.objectStore('media');
+      ids.forEach(function(id) {
+        if (urlCache[id]) { URL.revokeObjectURL(urlCache[id]); delete urlCache[id]; }
+        if (urlCache[id + '_t']) { delete urlCache[id + '_t']; }
+        store.delete(id);
+      });
+      tx.oncomplete = function() { resolve(); };
+      tx.onerror = function() { resolve(); };
+    } catch(e) { resolve(); }
+  });
+}
+
+/* HITUNG JUMLAH */
+async function dbCount() {
+  var db = await ensureDB();
+  return new Promise(function(resolve) {
+    try {
+      var req = db.transaction('media', 'readonly').objectStore('media').count();
+      req.onsuccess = function(e) { resolve(e.target.result); };
+      req.onerror = function() { resolve(0); };
+    } catch(e) { resolve(0); }
+  });
+}
+
+/* ================================================================
+   THUMBNAIL GENERATOR
+   ================================================================ */
+function generateVideoThumb(file) {
+  return new Promise(function(resolve) {
+    try {
+      var video = document.createElement('video');
+      video.preload = 'metadata';
+      video.muted = true;
+      video.playsInline = true;
+      var url = URL.createObjectURL(file);
+      video.src = url;
+
+      video.onloadeddata = function() {
+        video.currentTime = Math.min(1, (video.duration || 5) * 0.15);
+      };
+
+      video.onseeked = function() {
+        try {
+          var canvas = document.createElement('canvas');
+          var w = video.videoWidth || 320;
+          var h = video.videoHeight || 240;
+          canvas.width = w;
+          canvas.height = h;
+          canvas.getContext('2d').drawImage(video, 0, 0, w, h);
+          URL.revokeObjectURL(url);
+          resolve(canvas.toDataURL('image/jpeg', 0.65));
+        } catch(e) {
+          URL.revokeObjectURL(url);
+          resolve(null);
+        }
+      };
+
+      video.onerror = function() {
+        URL.revokeObjectURL(url);
+        resolve(null);
+      };
+
+      /* Timeout 8 detik */
+      setTimeout(function() {
+        try { URL.revokeObjectURL(url); } catch(e) {}
+        resolve(null);
+      }, 8000);
+
+    } catch(e) { resolve(null); }
+  });
+}
+
+/* ================================================================
+   STATE & CACHE
+   ================================================================ */
+var urlCache = {};        /* id -> objectURL, id_t -> thumb dataURL */
+var allRecords = [];      /* semua record dari DB */
+var currentFilter = 'semua';
+var selectedIds = new Set();
+var lbIndex = 0;
+var lbList = [];
+
+/* ================================================================
+   UTILITAS
+   ================================================================ */
+function fmtSize(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+  if (b < 1073741824) return (b / 1048576).toFixed(1) + ' MB';
+  return (b / 1073741824).toFixed(2) + ' GB';
+}
+
+function toast(msg, type) {
+  var el = document.getElementById('toast');
+  var ic = document.getElementById('toast-icon');
+  document.getElementById('toast-msg').textContent = msg;
+  var iconMap = { error: 'mdi:alert-circle', info: 'mdi:information', success: 'mdi:check-circle' };
+  var colorMap = { error: 'text-red-500', info: 'text-blue-500', success: 'text-green-500' };
+  ic.setAttribute('icon', iconMap[type] || iconMap.success);
+  ic.className = (colorMap[type] || colorMap.success) + ' text-2xl flex-shrink-0';
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(function() { el.classList.remove('show'); }, 3500);
+}
+
+function timeAgo(ts) {
+  var diff = Date.now() - ts;
+  var m = Math.floor(diff / 60000);
+  if (m < 1) return 'Baru saja';
+  if (m < 60) return m + ' menit lalu';
+  var h = Math.floor(m / 60);
+  if (h < 24) return h + ' jam lalu';
+  var d = Math.floor(h / 24);
+  if (d < 30) return d + ' hari lalu';
+  return new Date(ts).toLocaleDateString('id-ID');
+}
+
+function getFileUrl(record) {
+  if (urlCache[record.id]) return urlCache[record.id];
+  if (record.file) {
+    urlCache[record.id] = URL.createObjectURL(record.file);
+    return urlCache[record.id];
+  }
+  return '';
+}
+
+function getThumb(record) {
+  if (record.type === 'video') {
+    return record.thumb || urlCache[record.id + '_t'] || '';
+  }
+  return getFileUrl(record);
+}
+
+/* ================================================================
+   UPLOAD HANDLERS
+   ================================================================ */
+
+/* Drag & Drop */
+var dropZone = document.getElementById('drop-zone');
+dropZone.addEventListener('dragover', function(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  dropZone.style.borderColor = 'rgba(234,179,8,0.5)';
+  dropZone.style.background = 'rgba(234,179,8,0.03)';
+});
+dropZone.addEventListener('dragleave', function(e) {
+  e.preventDefault();
+  dropZone.style.borderColor = '';
+  dropZone.style.background = '';
+});
+dropZone.addEventListener('drop', function(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  dropZone.style.borderColor = '';
+  dropZone.style.background = '';
+  if (e.dataTransfer.files.length > 0) {
+    handleFiles(e.dataTransfer.files);
+  }
+});
+
+/* Handle multiple files */
+async function handleFiles(files) {
+  if (!files || files.length === 0) return;
+  var cat = document.getElementById('upload-cat').value;
+  var total = files.length;
+  var done = 0;
+  var errors = 0;
+
+  showProgress(true, 'Mengupload 0/' + total + '...', 0);
+
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i];
+    /* Validasi tipe */
+    if (!f.type.startsWith('image/') && !f.type.startsWith('video/')) {
+      errors++;
+      continue;
+    }
+    /* Validasi ukuran (maks 50MB) */
+    if (f.size > 50 * 1024 * 1024) {
+      errors++;
+      toast(f.name + ' terlalu besar (maks 50MB)', 'error');
+      continue;
+    }
+    try {
+      await dbSave(f, f.name.replace(/\.[^/.]+$/, ''), cat);
+      done++;
+      showProgress(true, 'Mengupload ' + done + '/' + total + '...', Math.round((done / total) * 100));
+    } catch(err) {
+      errors++;
+      console.error('Upload error:', f.name, err);
+    }
+  }
+
+  showProgress(false);
+  await refreshGallery();
+
+  if (done > 0) toast(done + ' file berhasil diupload!', 'success');
+  if (errors > 0) toast(errors + ' file gagal', 'error');
+
+  /* Reset input */
+  document.getElementById('file-input').value = '';
+}
+
+/* Handle single file (quick upload) */
+async function handleSingleFile(file, label) {
+  if (!file) return;
+  if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+    toast('Format tidak didukung', 'error');
+    return;
+  }
+  if (file.size > 50 * 1024 * 1024) {
+    toast('File terlalu besar (maks 50MB)', 'error');
+    return;
+  }
+
+  var zoneId = '';
+  var previewId = '';
+  if (label === 'Logo Tim') { zoneId = 'zone-logo'; previewId = 'preview-logo'; }
+  else if (label === 'Desain Jersey') { zoneId = 'zone-desain'; previewId = 'preview-desain'; }
+  else if (label === 'Referensi') { zoneId = 'zone-ref'; previewId = 'preview-ref'; }
+  else if (label === 'Video Produksi') { zoneId = 'zone-vid'; previewId = 'preview-vid'; }
+
+  showProgress(true, 'Mengupload...', 30);
+
+  try {
+    var cat = document.getElementById('upload-cat').value;
+    var id = await dbSave(file, label, cat);
+
+    showProgress(true, 'Mengupload...', 90);
+
+    /* Tampilkan preview */
+    if (previewId) {
+      var url = urlCache[id];
+      var container = document.getElementById(previewId);
+      if (container) {
+        container.innerHTML = '';
+        if (file.type.startsWith('video/')) {
+          container.innerHTML = '<div class="video-thumb-wrap aspect-square"><video src="' + url + '" class="w-full h-full object-cover" muted></video><div class="play-icon"><iconify-icon icon="mdi:play" class="text-white text-lg"></iconify-icon></div></div>';
+        } else {
+          container.innerHTML = '<img src="' + url + '" class="w-full aspect-square object-cover rounded-lg">';
+        }
+      }
+      if (zoneId) document.getElementById(zoneId).classList.add('has-file');
+    }
+
+    showProgress(false);
+    await refreshGallery();
+    toast(label + ' berhasil disimpan!', 'success');
+  } catch(err) {
+    showProgress(false);
+    toast('Gagal upload: ' + err.message, 'error');
+  }
+
+  /* Reset input */
+  if (zoneId) {
+    var inp = document.getElementById(zoneId).querySelector('input');
+    if (inp) inp.value = '';
+  }
+}
+
+function showProgress(show, label, pct) {
+  var area = document.getElementById('progress-area');
+  if (show) {
+    area.classList.remove('hidden');
+    document.getElementById('progress-label').textContent = label || 'Mengupload...';
+    document.getElementById('progress-pct').textContent = (pct || 0) + '%';
+    document.getElementById('progress-fill').style.width = (pct || 0) + '%';
+  } else {
+    area.classList.add('hidden');
+    document.getElementById('progress-fill').style.width = '0%';
+  }
+}
+
+/* ================================================================
+   GALLERY RENDER
+   ================================================================ */
+function getFilteredRecords() {
+  var search = document.getElementById('search-input').value.toLowerCase().trim();
+  return allRecords.filter(function(r) {
+    if (currentFilter !== 'semua' && r.type !== currentFilter) return false;
+    if (search && !(r.name || '').toLowerCase().includes(search) && !(r.label || '').toLowerCase().includes(search) && !(r.category || '').toLowerCase().includes(search)) return false;
+    return true;
+  });
+}
+
+function renderGallery() {
+  var records = getFilteredRecords();
+  var grid = document.getElementById('gallery-grid');
+  var empty = document.getElementById('empty-state');
+
+  if (records.length === 0) {
+    grid.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+
+  empty.classList.add('hidden');
+  var html = '';
+
+  records.forEach(function(r) {
+    var thumb = getThumb(r);
+    var isVid = r.type === 'video';
+    var isSelected = selectedIds.has(r.id);
+
+    html += '<div class="db-card overflow-hidden group' + (isSelected ? ' ring-2 ring-brand-gold' : '') + '" data-id="' + r.id + '">';
+    /* Checkbox */
+    html += '<div class="absolute top-2 left-2 z-10">';
+    html += '<input type="checkbox" class="item-check w-4 h-4 rounded accent-yellow-500 cursor-pointer" ' + (isSelected ? 'checked' : '') + ' onchange="toggleSelect(' + r.id + ', this.checked)" onclick="event.stopPropagation()">';
+    html += '</div>';
+    /* Thumbnail */
+    html += '<div class="relative aspect-square bg-neutral-900 cursor-pointer" onclick="' + (isVid ? 'playVideo(' + r.id + ')' : 'openLightbox(' + r.id + ')') + '">';
+    if (thumb) {
+      if (isVid) {
+        html += '<img src="' + thumb + '" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">';
+        html += '<div class="play-icon opacity-0 group-hover:opacity-100 transition-opacity"><iconify-icon icon="mdi:play" class="text-white text-lg"></iconify-icon></div>';
+      } else {
+        html += '<img src="' + thumb + '" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">';
+      }
+    } else {
+      html += '<div class="w-full h-full flex items-center justify-center"><iconify-icon icon="' + (isVid ? 'mdi:video-off-outline' : 'mdi:image-off-outline') + '" class="text-3xl text-neutral-700"></iconify-icon></div>';
+    }
+    /* Type badge */
+    html += '<div class="absolute top-2 right-2">';
+    if (isVid) {
+      html += '<span class="text-[8px] font-bold px-2 py-0.5 rounded bg-brand-red/90 text-white">VIDEO</span>';
+    }
+    html += '</div>';
+    html += '</div>';
+    /* Info */
+    html += '<div class="p-3">';
+    html += '<p class="text-[11px] font-semibold truncate" title="' + (r.label || r.name) + '">' + (r.label || r.name) + '</p>';
+    html += '<div class="flex items-center justify-between mt-1.5">';
+    html += '<span class="text-[9px] text-neutral-600">' + fmtSize(r.size) + '</span>';
+    html += '<div class="flex items-center gap-1">';
+    html += '<button onclick="event.stopPropagation();copyURL(' + r.id + ')" class="w-6 h-6 rounded flex items-center justify-center hover:bg-white/10 transition-all" title="Salin URL data"><iconify-icon icon="mdi:link-variant" class="text-xs text-neutral-600 hover:text-brand-gold"></iconify-icon></button>';
+    html += '<button onclick="event.stopPropagation();deleteOne(' + r.id + ')" class="w-6 h-6 rounded flex items-center justify-center hover:bg-red-500/10 transition-all" title="Hapus"><iconify-icon icon="mdi:delete-outline" class="text-xs text-neutral-600 hover:text-red-500"></iconify-icon></button>';
+    html += '</div></div>';
+    html += '<span class="text-[8px] text-neutral-700">' + timeAgo(r.ts) + '</span>';
+    html += '</div></div>';
+  });
+
+  grid.innerHTML = html;
+  updateSelBtn();
+}
+
+function updateStats() {
+  var imgs = allRecords.filter(function(r) { return r.type === 'image'; }).length;
+  var vids = allRecords.filter(function(r) { return r.type === 'video'; }).length;
+  var totalSize = allRecords.reduce(function(s, r) { return s + (r.size || 0); }, 0);
+
+  document.getElementById('stat-img').textContent = imgs;
+  document.getElementById('stat-vid').textContent = vids;
+  document.getElementById('stat-size').textContent = fmtSize(totalSize);
+  document.getElementById('stat-total').textContent = allRecords.length;
+}
+
+async function refreshGallery() {
+  try {
+    allRecords = await dbGetAll();
+    /* Urutkan terbaru dulu */
+    allRecords.sort(function(a, b) { return (b.ts || 0) - (a.ts || 0); });
+    /* Rebuild cache untuk record yang belum ada di cache */
+    allRecords.forEach(function(r) {
+      if (!urlCache[r.id] && r.file) {
+        urlCache[r.id] = URL.createObjectURL(r.file);
+      }
+    });
+  } catch(e) {
+    console.error('refreshGallery error:', e);
+    allRecords = [];
+  }
+  updateStats();
+  renderGallery();
+}
+
+/* ================================================================
+   FILTER & SELECT
+   ================================================================ */
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(function(btn) {
+    if (btn.getAttribute('data-f') === f) {
+      btn.className = 'filter-btn active text-[10px] font-bold tracking-wider uppercase px-4 py-2 rounded-lg border border-transparent bg-gradient-to-r from-brand-gold to-brand-darkgold text-black transition-all';
+    } else {
+      btn.className = 'filter-btn text-[10px] font-bold tracking-wider uppercase px-4 py-2 rounded-lg border border-white/10 bg-white/5 text-neutral-400 hover:text-white transition-all';
+    }
+  });
+  renderGallery();
+}
+
+function toggleSelect(id, checked) {
+  if (checked) { selectedIds.add(id); } else { selectedIds.delete(id); }
+  updateSelBtn();
+  /* Update card ring */
+  var card = document.querySelector('[data-id="' + id + '"]');
+  if (card) {
+    if (checked) { card.classList.add('ring-2', 'ring-brand-gold'); }
+    else { card.classList.remove('ring-2', 'ring-brand-gold'); }
+  }
+}
+
+function selectAll() {
+  var filtered = getFilteredRecords();
+  var allSelected = filtered.every(function(r) { return selectedIds.has(r.id); });
+  if (allSelected) {
+    filtered.forEach(function(r) { selectedIds.delete(r.id); });
+  } else {
+    filtered.forEach(function(r) { selectedIds.add(r.id); });
+  }
+  renderGallery();
+}
+
+function updateSelBtn() {
+  var btn = document.getElementById('btn-del-sel');
+  var count = selectedIds.size;
+  document.getElementById('sel-count').textContent = count;
+  if (count > 0) {
+    btn.classList.remove('hidden');
+    btn.classList.add('inline-flex');
+  } else {
+    btn.classList.add('hidden');
+    btn.classList.remove('inline-flex');
+  }
+}
+
+/* ================================================================
+   DELETE
+   ================================================================ */
+async function deleteOne(id) {
+  if (!confirm('Hapus file ini?')) return;
+  try {
+    await dbDel(id);
+    selectedIds.delete(id);
+    toast('File dihapus', 'success');
+    await refreshGallery();
+  } catch(e) {
+    toast('Gagal menghapus', 'error');
+  }
+}
+
+async function deleteSelected() {
+  var count = selectedIds.size;
+  if (count === 0) return;
+  if (!confirm('Hapus ' + count + ' file terpilih?')) return;
+  try {
+    await dbDelMany(Array.from(selectedIds));
+    selectedIds.clear();
+    toast(count + ' file dihapus', 'success');
+    await refreshGallery();
+  } catch(e) {
+    toast('Gagal menghapus', 'error');
+  }
+}
+
+/* ================================================================
+   COPY URL (untuk dipakai di halaman lain)
+   ================================================================ */
+function copyURL(id) {
+  var record = allRecords.find(function(r) { return r.id === id; });
+  if (!record) { toast('File tidak ditemukan', 'error'); return; }
+
+  /* Buat JSON metadata yang bisa dipakai halaman lain untuk load dari DB */
+  var meta = {
+    dbId: id,
+    type: record.type,
+    name: record.name,
+    label: record.label,
+    size: record.size,
+    mime: record.mime,
+    category: record.category,
+    ts: record.ts
+  };
+
+  var text = JSON.stringify(meta);
+  navigator.clipboard.writeText(text).then(function() {
+    toast('Metadata disalin ke clipboard!', 'success');
+  }).catch(function() {
+    /* Fallback */
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('Metadata disalin!', 'success');
+  });
+}
+
+/* ================================================================
+   LIGHTBOX (FOTO)
+   ================================================================ */
+function openLightbox(id) {
+  lbList = allRecords.filter(function(r) { return r.type === 'image'; });
+  lbIndex = lbList.findIndex(function(r) { return r.id === id; });
+  if (lbIndex < 0) lbIndex = 0;
+  renderLightbox();
+  document.getElementById('lightbox').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function renderLightbox() {
+  if (lbList.length === 0) return;
+  var r = lbList[lbIndex];
+  var url = getFileUrl(r);
+  document.getElementById('lb-content').innerHTML = '<img src="' + url + '" class="max-w-full max-h-[80vh] object-contain rounded-lg" style="animation:fadeUp .3s ease">';
+  document.getElementById('lb-title').textContent = r.label || r.name;
+  document.getElementById('lb-meta').textContent = fmtSize(r.size) + ' • ' + timeAgo(r.ts) + ' • ' + (r.category || 'umum');
+}
+
+function lbPrev() {
+  lbIndex = (lbIndex - 1 + lbList.length) % lbList.length;
+  renderLightbox();
+}
+
+function lbNext() {
+  lbIndex = (lbIndex + 1) % lbList.length;
+  renderLightbox();
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+/* Keyboard navigation */
+document.addEventListener('keydown', function(e) {
+  if (!document.getElementById('lightbox').classList.contains('hidden')) {
+    if (e.key === 'ArrowLeft') lbPrev();
+    else if (e.key === 'ArrowRight') lbNext();
+    else if (e.key === 'Escape') closeLightbox();
+  }
+  if (!document.getElementById('video-modal').classList.contains('hidden')) {
+    if (e.key === 'Escape') closeVideoModal();
+  }
+});
+
+/* ================================================================
+   VIDEO PLAYER
+   ================================================================ */
+function playVideo(id) {
+  var record = allRecords.find(function(r) { return r.id === id; });
+  if (!record) { toast('Video tidak ditemukan', 'error'); return; }
+
+  var url = getFileUrl(record);
+  var video = document.getElementById('vm-video');
+  video.src = url;
+  document.getElementById('vm-title').innerHTML = '<iconify-icon icon="mdi:play-circle" class="text-brand-red"></iconify-icon> ' + (record.label || record.name);
+  document.getElementById('video-modal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+  video.play().catch(function() {});
+}
+
+function closeVideoModal() {
+  var video = document.getElementById('vm-video');
+  video.pause();
+  video.src = '';
+  document.getElementById('video-modal').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+/* ================================================================
+   EXPORT / IMPORT
+   ================================================================ */
+async function exportDB() {
+  try {
+    var records = await dbGetAll();
+    /* Export metadata saja (tanpa binary file) */
+    var exportData = records.map(function(r) {
+      return {
+        id: r.id,
+        name: r.name,
+        label: r.label,
+        size: r.size,
+        mime: r.mime,
+        type: r.type,
+        category: r.category,
+        thumb: r.thumb,
+        ts: r.ts
+      };
+    });
+
+    var json = JSON.stringify(exportData, null, 2);
+    var blob = new Blob([json], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'ecosport-db-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('Backup berhasil didownload (' + records.length + ' record)', 'success');
+  } catch(e) {
+    toast('Gagal export: ' + e.message, 'error');
+  }
+}
+
+function showImportModal() {
+  document.getElementById('import-modal').classList.add('active');
+}
+
+function closeImportModal() {
+  document.getElementById('import-modal').classList.remove('active');
+}
+
+async function importJSON(file) {
+  if (!file) return;
+  try {
+    var text = await file.text();
+    var data = JSON.parse(text);
+    if (!Array.isArray(data)) throw new Error('Format tidak valid');
+
+    var added = 0;
+    for (var i = 0; i < data.length; i++) {
+      var item = data[i];
+      /* Cek apakah ID sudah ada */
+      var existing = await dbGet(item.id);
+      if (existing) continue; /* Skip yang sudah ada */
+
+      /* Simpan metadata saja (tanpa file binary) */
+      var db = await ensureDB();
+      await new Promise(function(resolve, reject) {
+        try {
+          var tx = db.transaction('media', 'readwrite');
+          var store = tx.objectStore('media');
+          var record = {
+            id: item.id,
+            name: item.name || '',
+            label: item.label || '',
+            size: item.size || 0,
+            mime: item.mime || '',
+            type: item.type || 'image',
+            category: item.category || 'umum',
+            thumb: item.thumb || null,
+            ts: item.ts || Date.now()
+          };
+          var req = store.put(record);
+          req.onsuccess = function() { added++; resolve(); };
+          req.onerror = function() { resolve(); };
+        } catch(e) { resolve(); }
+      });
+    }
+
+    closeImportModal();
+    await refreshGallery();
+    toast(added + ' metadata berhasil diimport', 'success');
+  } catch(e) {
+    toast('Gagal import: ' + e.message, 'error');
+  }
+  document.getElementById('import-file').value = '';
+}
+
+/* ================================================================
+   INISIALISASI
+   ================================================================ */
+async function init() {
+  var statusEl = document.getElementById('db-status');
+
+  try {
+    await openDB();
+    statusEl.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Database Siap';
+    statusEl.className = 'text-[10px] font-semibold px-3 py-1 rounded-full bg-green-500/10 text-green-500 border border-green-500/20 flex items-center gap-1.5';
+
+    await refreshGallery();
+    console.log('Database ECO SPORT siap. Total record:', allRecords.length);
+
+  } catch(e) {
+    console.error('Init error:', e);
+    statusEl.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-red-500" style="animation:pulse 1s infinite"></span> Gagal';
+    statusEl.className = 'text-[10px] font-semibold px-3 py-1 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 flex items-center gap-1.5';
+    toast('Gagal membuka database: ' + e.message, 'error');
+  }
+}
+
+/* Jalankan saat halaman siap */
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+</body>
+</html>
