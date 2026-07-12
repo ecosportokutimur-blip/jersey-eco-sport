@@ -448,5 +448,79 @@ async function init(){
 }
 init();
 </script>
+  /* ========================================
+   ECO SPORT — Kode Integrasi Galeri Publik
+   Paste di index.html sebelum </body>
+   ======================================== */
+
+(function() {
+  var JSON_URL = "https://raw.githubusercontent.com/ecosportokutimur-blip/databasekonveksi/main/db/media.json";
+
+  /* Fungsi utama: load & render galeri */
+  async function loadGallery() {
+    try {
+      var resp = await fetch(JSON_URL);
+      var data = await resp.json();
+      var items = data.media || [];
+
+      /* --- CONTOH: Render ke grid galeri --- */
+      var grid = document.getElementById("gallery-grid");
+      if (!grid) { console.warn("Element #gallery-grid tidak ditemukan"); return; }
+      grid.innerHTML = "";
+
+      items.forEach(function(m) {
+        var div = document.createElement("div");
+        div.className = "group relative rounded-xl overflow-hidden bg-neutral-900";
+
+        if (m.type === "video") {
+          div.innerHTML =
+            '<div class="aspect-video cursor-pointer relative" onclick="ecoPlayVideo("\'" + m.url + "\'")">' +
+            '<img src="' + (m.thumb || m.url) + '" class="w-full h-full object-cover">' +
+            '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:rgba(220,38,38,.9);display:flex;align-items:center;justify-content:center">' +
+            '<iconify-icon icon="mdi:play" class="text-white text-lg"></iconify-icon></div>' +
+            '</div>';
+        } else {
+          div.innerHTML =
+            '<img src="' + m.url + '" class="w-full aspect-square object-cover cursor-pointer hover:scale-105 transition-transform duration-500" onclick="ecoOpenLightbox("\'" + m.url + "\'")">' ;
+        }
+
+        div.innerHTML += '<div class="p-3"><p class="text-xs font-semibold truncate">' + (m.label || m.name) + '</p>' +
+          '<p class="text-[10px] text-neutral-600">' + (m.category || "umum") + '</p></div>';
+
+        grid.appendChild(div);
+      });
+
+      console.log("ECO SPORT Gallery: " + items.length + " items loaded");
+
+    } catch(e) {
+      console.error("ECO Gallery load error:", e);
+    }
+  }
+
+  /* Global functions untuk lightbox & video */
+  window.ecoOpenLightbox = function(url) {
+    var lb = document.getElementById("lightbox");
+    if (!lb) return;
+    var content = document.getElementById("lightbox-content");
+    if (content) content.innerHTML = '<img src="' + url + '" class="max-w-full max-h-[85vh] object-contain">' ;
+    lb.classList.add("active");
+  };
+
+  window.ecoPlayVideo = function(url) {
+    var v = document.getElementById("vm-video");
+    if (v) { v.src = url; v.play().catch(function(){}); }
+    var modal = document.getElementById("video-modal");
+    if (modal) modal.classList.add("active");
+  };
+
+  /* Jalankan saat DOM siap */
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", loadGallery);
+  } else {
+    loadGallery();
+  }
+
+})();
+
 </body>
 </html>
