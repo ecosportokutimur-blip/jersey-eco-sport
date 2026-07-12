@@ -521,6 +521,32 @@ init();
   }
 
 })();
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<script>
+const supabase = window.supabase.createClient(
+  "PROJECT_URL"https://kukpznahpnvyrsqzbujv.supabase.co/rest/v1/"
+  "ANON_KEY"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1a3B6bmFocG52eXJzcXpidWp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4MTYxMzcsImV4cCI6MjA5ODM5MjEzN30.6_BA_LfyAkzDNizPtWu2tDWl80jCbrPk7qs-PlhDeWg"
+);
+</script>
+const file = document.getElementById("foto").files[0];
+
+await supabase.storage
+.from("media")
+.upload(Date.now()+"_"+file.name, file);
+await supabase
+.from("galeri")
+.insert({
+    judul: "Foto Baru",
+    deskripsi: "Upload dari Admin",
+    tipe: "foto",
+    file_url: urlFile
+});
+const { data } = await supabase
+.from("galeri")
+.select("*")
+.order("id", { ascending: false });
+
+console.log(data);
 </body>
 </html>
