@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECO SPORT - Admin Database</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script>tailwind.config={theme:{extend:{fontFamily:{inter:['Inter','sans-serif']},colors:{brand:{red:'#dc2626',gold:'#eab308',darkgold:'#ca8a04',darkred:'#991b1b'}}}}}</script>
+<style>
+*{font-family:'Inter',sans-serif}::selection{background:rgba(234,179,8,.3);color:#fde047}::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#050505}::-webkit-scrollbar-thumb{background:#333;border-radius:4px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes breathe{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:.5;transform:scale(1.05)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.gradient-text{background:linear-gradient(to bottom,#fff,#eab308);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.toast{transform:translateX(120%);transition:transform .4s cubic-bezier(.16,1,.3,1)}.toast.show{transform:translateX(0)}
+.spinner{width:20px;height:20px;border:2.5px solid rgba(255,255,255,.12);border-top-color:#eab308;border-radius:50%;animation:spin .6s linear infinite;display:inline-block;vertical-align:middle}
+.db-card{background:rgba(23,23,23,.5);border:1px solid rgba(255,255,255,.05);border-radius:16px;transition:all .3s}.db-card:hover{border-color:rgba(234,179,8,.12)}
+.btn-gold{background:linear-gradient(135deg,#eab308,#ca8a04);color:#000;transition:all .3s}.btn-gold:hover{background:linear-gradient(135deg,#facc15,#eab308);transform:scale(1.02);box-shadow:0 0 25px rgba(234,179,8,.4)}
+.btn-primary{background:linear-gradient(135deg,#dc2626,#b91c1c);transition:all .3s}.btn-primary:hover{background:linear-gradient(135deg,#ef4444,#dc2626);transform:scale(1.02);box-shadow:0 0 25px rgba(220,38,38,.4)}
+.btn-outline{background:transparent;border:1px solid rgba(255,255,255,.1);transition:all .3s}.btn-outline:hover{border-color:rgba(234,179,8,.3);background:rgba(234,179,8,.05)}
+.btn-danger{background:linear-gradient(135deg,#dc2626,#991b1b);transition:all .3s;color:#fff}.btn-danger:hover{transform:scale(1.02);box-shadow:0 0 20px rgba(220,38,38,.3)}
+.btn-sm{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:6px 14px;border-radius:8px;display:inline-flex;align-items:center;gap:5px}
+.upload-zone{transition:all .3s;border:2px dashed rgba(255,255,255,.08);border-radius:16px;cursor:pointer}.upload-zone:hover{border-color:rgba(234,179,8,.3)!important;background:rgba(234,179,8,.02)!important}.upload-zone.dragover{border-color:rgba(234,179,8,.6)!important;background:rgba(234,179,8,.04)!important}
+.progress-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden}.progress-fill{height:100%;background:linear-gradient(90deg,#dc2626,#eab308);border-radius:3px;transition:width .3s}
+.stat-pill{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:16px;transition:all .3s}.stat-pill:hover{border-color:rgba(234,179,8,.15)}
+.code-block{background:#080808;border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:12px 14px;font-family:'Courier New',monospace;font-size:10px;color:#eab308;overflow-x:auto;white-space:pre-wrap;word-break:break-all;line-height:1.6;max-height:200px;overflow-y:auto;cursor:pointer}
+.play-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:rgba(220,38,38,.9);display:flex;align-items:center;justify-content:center;pointer-events:none;box-shadow:0 0 20px rgba(220,38,38,.4)}
+.filter-btn.active{background:linear-gradient(135deg,#eab308,#ca8a04)!important;color:#000!important;border-color:transparent!important}
+.queue-item{animation:fadeUp .3s ease}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#eab308!important;box-shadow:0 0 0 2px rgba(234,179,8,.2)}
+select option{background:#111;color:#fff}
+.modal-overlay{display:none;position:fixed;inset:0;z-index:260;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);justify-content:center;align-items:center}.modal-overlay.active{display:flex}
+</style>
+</head>
+<body class="bg-[#050505] text-white font-inter antialiased overflow-x-hidden min-h-screen">
+
+<!-- BG -->
+<div class="fixed inset-0 pointer-events-none overflow-hidden">
+<div class="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-red/[.03] rounded-full blur-[150px]" style="animation:breathe 10s ease-in-out infinite"></div>
+<div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-brand-gold/[.03] rounded-full blur-[130px]" style="animation:breathe 12s ease-in-out infinite 3s"></div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast fixed top-6 right-6 z-[300] bg-neutral-900 border border-brand-gold/30 rounded-xl p-4 flex items-center gap-3 shadow-2xl max-w-sm">
+<iconify-icon id="toast-icon" icon="mdi:check-circle" class="text-green-500 text-2xl flex-shrink-0"></iconify-icon>
+<span id="toast-msg" class="text-sm text-neutral-200"></span>
+</div>
+
+<!-- NAV -->
+<nav class="fixed top-0 left-0 right-0 z-50 bg-[#050505]/90 backdrop-blur-xl border-b border-white/5">
+<div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-9 h-9 rounded-lg bg-gradient-to-br from-brand-red to-brand-gold flex items-center justify-center font-black text-sm text-white">ECO</div>
+<span class="text-lg font-bold tracking-tight">ECO<span class="text-brand-gold">SPORT</span></span>
+<span class="hidden sm:inline text-[10px] font-bold tracking-widest uppercase text-neutral-600 ml-2 border-l border-white/10 pl-3">Admin DB</span>
+</div>
+<div class="flex items-center gap-2">
+<span id="conn-badge" class="text-[10px] font-bold px-3 py-1.5 rounded-full bg-neutral-800 text-neutral-500 border border-neutral-700 flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-neutral-600"></span> Cek Koneksi...
+</span>
+<a href="config.html" class="btn-outline btn-sm text-neutral-500 hover:text-brand-gold"><iconify-icon icon="mdi:cog-outline" class="text-sm"></iconify-icon><span class="hidden sm:inline"> Config</span></a>
+<a href="index.html" class="btn-outline btn-sm text-neutral-500 hover:text-white"><iconify-icon icon="mdi:open-in-new" class="text-sm"></iconify-icon><span class="hidden sm:inline"> Website</span></a>
+</div>
+</div>
+</nav>
+
+<main class="relative z-10 pt-24 pb-20 px-4 sm:px-6 max-w-6xl mx-auto">
+
+<!-- NOT CONNECTED BANNER -->
+<div id="no-conn" class="hidden mb-8 p-5 rounded-2xl bg-red-500/5 border border-red-500/15 flex items-start gap-4">
+<div class="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center flex-shrink-0">
+<iconify-icon icon="mdi:link-off" class="text-xl text-red-400"></iconify-icon>
+</div>
+<div class="flex-1">
+<h3 class="text-sm font-bold text-red-400 mb-1">Belum Terhubung ke GitHub</h3>
+<p class="text-xs text-neutral-500">Buka halaman <a href="config.html" class="text-brand-gold hover:underline font-semibold">Config</a> dulu untuk menghubungkan ke repository, lalu kembali ke sini.</p>
+</div>
+<a href="config.html" class="btn-primary btn-sm flex-shrink-0">Ke Config</a>
+</div>
+
+<!-- STATS -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+<div class="stat-pill text-center"><iconify-icon icon="mdi:image-multiple-outline" class="text-2xl text-brand-gold mb-2"></iconify-icon><div class="text-2xl font-black" id="st-img">-</div><div class="text-[9px] font-bold tracking-widest uppercase text-neutral-600 mt-1">Foto</div></div>
+<div class="stat-pill text-center"><iconify-icon icon="mdi:video-outline" class="text-2xl text-brand-red mb-2"></iconify-icon><div class="text-2xl font-black" id="st-vid">-</div><div class="text-[9px] font-bold tracking-widest uppercase text-neutral-600 mt-1">Video</div></div>
+<div class="stat-pill text-center"><iconify-icon icon="mdi:harddisk" class="text-2xl text-blue-400 mb-2"></iconify-icon><div class="text-2xl font-black" id="st-size">-</div><div class="text-[9px] font-bold tracking-widest uppercase text-neutral-600 mt-1">Total Ukuran</div></div>
+<div class="stat-pill text-center"><iconify-icon icon="mdi:earth" class="text-2xl text-green-400 mb-2"></iconify-icon><div class="text-2xl font-black" id="st-pub">-</div><div class="text-[9px] font-bold tracking-widest uppercase text-neutral-600 mt-1">Publik URL</div></div>
+</div>
+
+<!-- UPLOAD SECTION -->
+<div class="db-card p-6 md:p-8 mb-8">
+<div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-brand-gold/10 flex items-center justify-center"><iconify-icon icon="mdi:cloud-upload-outline" class="text-brand-gold"></iconify-icon></div>
+<div><h2 class="text-base font-bold">Upload File</h2><p class="text-[10px] text-neutral-600">Foto & video → langsung publik di GitHub</p></div>
+</div>
+<div id="upload-toggle" class="flex items-center gap-2 cursor-pointer select-none" onclick="toggleUploadPanel()">
+<span class="text-[10px] font-bold text-neutral-500" id="toggle-label">Tutup</span>
+<iconify-icon id="toggle-icon" icon="mdi:chevron-up" class="text-neutral-500 transition-transform"></iconify-icon>
+</div>
+</div>
+
+<div id="upload-panel">
+<div class="grid sm:grid-cols-3 gap-4 mb-5">
+<div>
+<label class="block text-[10px] font-bold tracking-widest uppercase text-neutral-500 mb-2">Kategori</label>
+<select id="up-cat" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-neutral-300 appearance-none cursor-pointer">
+<option value="umum">Umum</option>
+<option value="sepak-bola">Sepak Bola</option>
+<option value="futsal">Futsal</option>
+<option value="voli">Voli</option>
+<option value="badminton">Badminton</option>
+<option value="esport">Esport</option>
+<option value="komunitas">Komunitas</option>
+</select>
+</div>
+<div>
+<label class="block text-[10px] font-bold tracking-widest uppercase text-neutral-500 mb-2">Label / Judul</label>
+<input type="text" id="up-label" placeholder="Jersey Tim Bola" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-neutral-700">
+</div>
+<div class="flex items-end">
+<p class="text-[10px] text-neutral-700 flex items-center gap-1.5 pb-3"><iconify-icon icon="mdi:information-outline" class="text-sm"></iconify-icon>Maks 25MB/file • JPG PNG MP4 MOV</p>
+</div>
+</div>
+
+<!-- Drop Zone -->
+<div id="drop-zone" class="upload-zone p-10 md:p-14 text-center mb-5" onclick="document.getElementById('file-input').click()">
+<input type="file" id="file-input" class="hidden" accept="image/*,video/*" multiple onchange="handleFiles(this.files)">
+<iconify-icon icon="mdi:cloud-upload-outline" class="text-5xl text-neutral-800 mb-3"></iconify-icon>
+<p class="text-sm font-semibold text-neutral-500">Klik atau seret file ke sini</p>
+<p class="text-[10px] text-neutral-700 mt-2">Bisa banyak file sekaligus</p>
+</div>
+
+<!-- Progress -->
+<div id="progress-area" class="hidden mb-5">
+<div class="flex items-center justify-between mb-2">
+<span class="text-xs font-semibold text-neutral-400" id="progress-label">Mengupload...</span>
+<span class="text-xs font-bold text-brand-gold" id="progress-pct">0%</span>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+</div>
+
+<!-- Queue -->
+<div id="upload-queue" class="space-y-2 mb-2"></div>
+</div>
+</div>
+
+<!-- GALLERY SECTION -->
+<div class="db-card p-6 md:p-8">
+<div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center"><iconify-icon icon="mdi:image-multiple-outline" class="text-green-400"></iconify-icon></div>
+<div><h2 class="text-base font-bold">Galeri Publik</h2><p class="text-[10px] text-neutral-600">File di repository — URL publik siap pakai</p></div>
+</div>
+<div class="flex items-center gap-2">
+<button onclick="refreshMedia()" id="btn-refresh" class="btn-outline btn-sm text-neutral-500 hover:text-white"><iconify-icon icon="mdi:refresh" class="text-sm" id="refresh-icon"></iconify-icon> Refresh</button>
+<button onclick="deleteSelected()" id="btn-del-sel" class="hidden btn-danger btn-sm"><iconify-icon icon="mdi:delete-outline" class="text-sm"></iconify-icon> Hapus (<span id="sel-count">0</span>)</button>
+</div>
+</div>
+
+<!-- Filter & Search -->
+<div class="flex flex-wrap items-center gap-3 mb-6">
+<div class="flex-1 min-w-[160px] relative">
+<iconify-icon icon="mdi:magnify" class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-700"></iconify-icon>
+<input type="text" id="search-input" placeholder="Cari file..." class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-neutral-700" oninput="renderGallery()">
+</div>
+<div class="flex flex-wrap gap-2" id="filter-btns">
+<button onclick="setFilter('semua')" class="filter-btn active btn-sm border border-white/10 bg-white/5 text-neutral-400" data-f="semua">Semua</button>
+<button onclick="setFilter('image')" class="filter-btn btn-sm border border-white/10 bg-white/5 text-neutral-400" data-f="image">Foto</button>
+<button onclick="setFilter('video')" class="filter-btn btn-sm border border-white/10 bg-white/5 text-neutral-400" data-f="video">Video</button>
+</div>
+<div class="flex gap-1">
+<button onclick="selectAll()" class="btn-outline btn-sm text-neutral-600 hover:text-white" title="Pilih Semua"><iconify-icon icon="mdi:checkbox-multiple-outline" class="text-sm"></iconify-icon></button>
+<button onclick="deselectAll()" class="btn-outline btn-sm text-neutral-600 hover:text-white" title="Batal Pilih"><iconify-icon icon="mdi:checkbox-multiple-blank-outline" class="text-sm"></iconify-icon></button>
+</div>
+</div>
+
+<!-- Grid -->
+<div id="gallery-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
+<div id="empty-state" class="hidden text-center py-16">
+<iconify-icon icon="mdi:cloud-off-outline" class="text-5xl text-neutral-800 mb-3"></iconify-icon>
+<p class="text-sm font-bold text-neutral-600">Belum ada file publik</p>
+<p class="text-xs text-neutral-700 mt-1">Upload file di atas untuk memulai</p>
+</div>
+</div>
+
+</main>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" class="fixed inset-0 z-[200] bg-black/95 hidden" onclick="if(event.target===this)closeLightbox()">
+<button onclick="closeLightbox()" class="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 z-10"><iconify-icon icon="mdi:close" class="text-xl"></iconify-icon></button>
+<button onclick="lbPrev()" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 z-10"><iconify-icon icon="mdi:chevron-left" class="text-2xl"></iconify-icon></button>
+<button onclick="lbNext()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 z-10"><iconify-icon icon="mdi:chevron-right" class="text-2xl"></iconify-icon></button>
+<div id="lb-content" class="absolute inset-0 flex items-center justify-center p-14"></div>
+<div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-5">
+<p id="lb-title" class="text-sm font-bold"></p>
+<p id="lb-meta" class="text-[10px] text-neutral-500 mt-1"></p>
+</div>
+</div>
+
+<!-- VIDEO MODAL -->
+<div id="video-modal" class="modal-overlay" onclick="if(event.target===this)closeVideoModal()">
+<div class="bg-black rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden mx-4" style="animation:fadeUp .3s ease">
+<div class="flex items-center justify-between p-4 border-b border-white/10">
+<h3 id="vm-title" class="text-sm font-bold flex items-center gap-2"><iconify-icon icon="mdi:play-circle" class="text-brand-red"></iconify-icon> Video</h3>
+<button onclick="closeVideoModal()" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-white/10"><iconify-icon icon="mdi:close"></iconify-icon></button>
+</div>
+<div class="relative bg-black" style="aspect-ratio:16/9"><video id="vm-video" controls playsinline class="w-full h-full object-contain"></video></div>
+</div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div id="detail-modal" class="modal-overlay" onclick="if(event.target===this)closeDetail()">
+<div class="bg-[#111] border border-white/10 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto mx-4 p-6" style="animation:fadeUp .3s ease">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-base font-bold">Detail File</h3>
+<button onclick="closeDetail()" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-white/10"><iconify-icon icon="mdi:close"></iconify-icon></button>
+</div>
+<div id="detail-body"></div>
+</div>
+</div>
+
+<script>
+/* ================================================================
+   STATE
+   ================================================================ */
+var config = { owner:'', repo:'', branch:'main', token:'' };
+var isConnected = false;
+var mediaList = [];
+var currentFilter = 'semua';
+var selectedIds = new Set();
+var lbIndex = 0, lbList = [];
+var uploadQueue = [];
+var isUploading = false;
+var uploadPanelOpen = true;
+
+/* ================================================================
+   UTILITAS
+   ================================================================ */
+function toast(msg,type){var el=document.getElementById('toast'),ic=document.getElementById('toast-icon');document.getElementById('toast-msg').textContent=msg;var im={error:'mdi:alert-circle',info:'mdi:information',success:'mdi:check-circle',warn:'mdi:alert-circle-outline'},cm={error:'text-red-500',info:'text-blue-500',success:'text-green-500',warn:'text-yellow-500'};ic.setAttribute('icon',im[type]||im.success);ic.className=(cm[type]||cm.success)+' text-2xl flex-shrink-0';el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(function(){el.classList.remove('show');},4000);}
+function fmtSize(b){if(!b)return'0 B';if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB';}
+function timeAgo(ts){if(!ts)return'-';var d=Date.now()-ts,m=Math.floor(d/60000);if(m<1)return'Baru saja';if(m<60)return m+'m lalu';var h=Math.floor(m/60);if(h<24)return h+'j lalu';var dd=Math.floor(h/24);if(dd<30)return dd+'h lalu';return new Date(ts).toLocaleDateString('id-ID');}
+function genId(){return Date.now().toString(36)+Math.random().toString(36).substr(2,6);}
+function getExt(n){var p=n.split('.');return p.length>1?p.pop().toLowerCase():'';}
+function isVidM(m){return m&&m.startsWith('video/');}
+function ab2b64(buf){var b='',u=new Uint8Array(buf),c=8192;for(var i=0;i<u.length;i+=c){var s=u.subarray(i,Math.min(i+c,u.length));b+=String.fromCharCode.apply(null,s);}return btoa(b);}
+function pubURL(p){return 'https://raw.githubusercontent.com/'+config.owner+'/'+config.repo+'/'+config.branch+'/'+p;}
+function apiURL(p){return 'https://api.github.com/repos/'+config.owner+'/'+config.repo+'/contents/'+p;}
+function hdrs(){var h={'Accept':'application/vnd.github.v3+json'};if(config.token)h['Authorization']='token '+config.token;return h;}
+function copyText(t){navigator.clipboard.writeText(t).then(function(){toast('Disalin!','success');}).catch(function(){var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');document.body.removeChild(a);toast('Disalin!','success');});}
+
+/* ================================================================
+   CONFIG
+   ================================================================ */
+function loadCfg(){try{var s=sessionStorage.getItem('eco_db_cfg');if(s){var c=JSON.parse(s);config=c;return !!(c.owner&&c.repo&&c.token);}}catch(e){}return false;}
+
+function setBadge(ok){
+  var el=document.getElementById('conn-badge');
+  if(ok){el.innerHTML='<span class="w-2 h-2 rounded-full bg-green-500"></span> Terhubung';el.className='text-[10px] font-bold px-3 py-1.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20 flex items-center gap-1.5';}
+  else{el.innerHTML='<span class="w-2 h-2 rounded-full bg-red-500"></span> Gagal';el.className='text-[10px] font-bold px-3 py-1.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 flex items-center gap-1.5';}
+}
+
+async function checkConn(){
+  if(!config.owner||!config.repo||!config.token){showNoConn();return false;}
+  try{
+    var r=await fetch(apiURL(''),{headers:hdrs()});
+    if(!r.ok)throw new Error(r.status);
+    isConnected=true;setBadge(true);return true;
+  }catch(e){isConnected=false;setBadge(false);showNoConn();return false;}
+}
+
+function showNoConn(){
+  document.getElementById('no-conn').classList.remove('hidden');
+  document.getElementById('no-conn').style.display='flex';
+}
+
+function toggleUploadPanel(){
+  uploadPanelOpen=!uploadPanelOpen;
+  var p=document.getElementById('upload-panel');
+  var ic=document.getElementById('toggle-icon');
+  var lb=document.getElementById('toggle-label');
+  if(uploadPanelOpen){p.style.display='';ic.setAttribute('icon','mdi:chevron-up');lb.textContent='Tutup';}
+  else{p.style.display='none';ic.setAttribute('icon','mdi:chevron-down');lb.textContent='Buka';}
+}
+
+/* ================================================================
+   GITHUB API — MEDIA.JSON
+   ================================================================ */
+async function readMediaJSON(){
+  try{
+    var r=await fetch(apiURL('db/media.json'),{headers:hdrs()});
+    if(r.status===404)return{media:[]};
+    if(!r.ok)throw new Error(r.status);
+    var d=await r.json();
+    return JSON.parse(atob(d.content.replace(/\n/g,'')));
+  }catch(e){return{media:[]};}
+}
+
+async function writeMediaJSON(obj){
+  var content=btoa(unescape(encodeURIComponent(JSON.stringify(obj,null,2))));
+  var sha=null;
+  try{var r=await fetch(apiURL('db/media.json'),{headers:hdrs()});if(r.ok){var d=await r.json();sha=d.sha;}}catch(e){}
+  var body={message:'Update media.json',content:content};
+  if(sha)body.sha=sha;
+  var r2=await fetch(apiURL('db/media.json'),{method:'PUT',headers:hdrs(),body:JSON.stringify(body)});
+  if(!r2.ok){var e={};try{e=await r2.json();}catch(x){}throw new Error(e.message||'Gagal tulis media.json');}
+}
+
+/* ================================================================
+   GITHUB API — UPLOAD FILE
+   ================================================================ */
+async function uploadToGH(file,label,category){
+  var ext=getExt(file.name);
+  var id=genId();
+  var isV=isVidM(file.type);
+  var sub=isV?'videos':'images';
+  var path='uploads/'+sub+'/'+id+'.'+ext;
+
+  var buf=await file.arrayBuffer();
+  var b64=ab2b64(buf);
+
+  var r=await fetch(apiURL(path),{method:'PUT',headers:hdrs(),body:JSON.stringify({message:'Upload '+(isV?'video':'foto')+': '+(label||file.name),content:b64})});
+  if(!r.ok){var e={};try{e=await r.json();}catch(x){}throw new Error(e.message||'Upload gagal');}
+
+  var pubUrl=pubURL(path);
+  var thumbUrl='';
+
+  if(isV){
+    var td=await genVidThumb(file);
+    if(td){
+      var tp='uploads/thumbs/'+id+'.jpg';
+      var tb=td.split(',')[1];
+      var tr=await fetch(apiURL(tp),{method:'PUT',headers:hdrs(),body:JSON.stringify({message:'Thumb: '+id,content:tb})});
+      if(tr.ok)thumbUrl=pubURL(tp); else thumbUrl=td;
+    }
+  }
+
+  return{id:id,type:isV?'video':'image',name:file.name,label:label||file.name.replace(/\.[^/.]+$/,''),category:category||'umum',size:file.size,mime:file.type,path:path,url:pubUrl,thumb:thumbUrl,ts:Date.now()};
+}
+
+/* ================================================================
+   GITHUB API — DELETE FILE
+   ================================================================ */
+async function deleteFromGH(path){
+  var r=await fetch(apiURL(path),{headers:hdrs()});
+  if(!r.ok)return;
+  var d=await r.json();
+  await fetch(apiURL(path),{method:'DELETE',headers:hdrs(),body:JSON.stringify({message:'Hapus: '+path,sha:d.sha})});
+}
+
+/* ================================================================
+   VIDEO THUMBNAIL
+   ================================================================ */
+function genVidThumb(file){
+  return new Promise(function(resolve){
+    try{var v=document.createElement('video');v.preload='metadata';v.muted=true;v.playsInline=true;var u=URL.createObjectURL(file);v.src=u;
+    v.onloadeddata=function(){v.currentTime=Math.min(1,(v.duration||5)*0.15);};
+    v.onseeked=function(){try{var c=document.createElement('canvas');c.width=v.videoWidth||640;c.height=v.videoHeight||360;c.getContext('2d').drawImage(v,0,0,c.width,c.height);URL.revokeObjectURL(u);resolve(c.toDataURL('image/jpeg',0.7));}catch(e){URL.revokeObjectURL(u);resolve(null);}};
+    v.onerror=function(){URL.revokeObjectURL(u);resolve(null);};
+    setTimeout(function(){try{URL.revokeObjectURL(u);}catch(e){}resolve(null);},10000);
+    }catch(e){resolve(null);}
+  });
+}
+
+/* ================================================================
+   UPLOAD HANDLERS
+   ================================================================ */
+var dz=document.getElementById('drop-zone');
+dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('dragover');});
+dz.addEventListener('dragleave',function(e){e.preventDefault();dz.classList.remove('dragover');});
+dz.addEventListener('drop',function(e){e.preventDefault();dz.classList.remove('dragover');if(e.dataTransfer.files.length)handleFiles(e.dataTransfer.files);});
+
+function handleFiles(files){
+  if(!files||!files.length)return;
+  if(!isConnected){toast('Hubungkan ke GitHub dulu!','error');return;}
+  var cat=document.getElementById('up-cat').value;
+  var label=document.getElementById('up-label').value.trim();
+  for(var i=0;i<files.length;i++){
+    var f=files[i];
+    if(!f.type.startsWith('image/')&&!f.type.startsWith('video/')){toast(f.name+' — format tidak didukung','warn');continue;}
+    if(f.size>25*1024*1024){toast(f.name+' — terlalu besar (maks 25MB)','error');continue;}
+    uploadQueue.push({file:f,label:label||f.name.replace(/\.[^/.]+$/,''),category:cat});
+  }
+  document.getElementById('file-input').value='';
+  processQueue();
+}
+
+async function processQueue(){
+  if(isUploading||uploadQueue.length===0)return;
+  isUploading=true;
+  var area=document.getElementById('progress-area');
+  var qEl=document.getElementById('upload-queue');
+  area.classList.remove('hidden');
+
+  while(uploadQueue.length>0){
+    var item=uploadQueue.shift();
+    var done=mediaList.length;
+    var total=mediaList.length+uploadQueue.length+1;
+    var pct=Math.round((done/total)*100);
+    showProgress(true,'Mengupload '+item.file.name+'...',pct);
+    addQueueItem(item.file.name,'uploading');
+
+    try{
+      var entry=await uploadToGH(item.file,item.label,item.category);
+      var obj=await readMediaJSON();
+      obj.media.push(entry);
+      await writeMediaJSON(obj);
+      mediaList.push(entry);
+      updateQueueItem(item.file.name,'done');
+      toast(item.file.name+' berhasil!','success');
+    }catch(e){
+      console.error('Upload error:',e);
+      updateQueueItem(item.file.name,'error');
+      toast(item.file.name+' gagal: '+e.message,'error');
+    }
+  }
+  showProgress(false);isUploading=false;
+  updateStats();renderGallery();
+  setTimeout(function(){qEl.innerHTML='';},4000);
+}
+
+function showProgress(show,label,pct){
+  var a=document.getElementById('progress-area');
+  if(show){a.classList.remove('hidden');document.getElementById('progress-label').textContent=label||'';document.getElementById('progress-pct').textContent=(pct||0)+'%';document.getElementById('progress-fill').style.width=(pct||0)+'%';}
+  else{a.classList.add('hidden');document.getElementById('progress-fill').style.width='0%';}
+}
+
+function addQueueItem(name,status){
+  var el=document.getElementById('upload-queue');
+  var fid='q-'+name.replace(/[^a-zA-Z0-9]/g,'_');
+  el.innerHTML+='<div id="'+fid+'" class="queue-item flex items-center gap-3 p-3 rounded-xl bg-white/[.02] border border-white/5 text-xs"><span class="spinner" id="'+fid+'-ic"></span><span class="flex-1 truncate text-neutral-400">'+name+'</span><span id="'+fid+'-st" class="text-neutral-600">Mengupload...</span></div>';
+}
+
+function updateQueueItem(name,status){
+  var fid='q-'+name.replace(/[^a-zA-Z0-9]/g,'_');
+  var ic=document.getElementById(fid+'-ic');
+  var st=document.getElementById(fid+'-st');
+  if(!ic||!st)return;
+  if(status==='done'){ic.outerHTML='<iconify-icon icon="mdi:check-circle" class="text-green-500 text-lg flex-shrink-0"></iconify-icon>';st.textContent='Selesai';st.className='text-green-500 font-bold';}
+  else if(status==='error'){ic.outerHTML='<iconify-icon icon="mdi:alert-circle" class="text-red-500 text-lg flex-shrink-0"></iconify-icon>';st.textContent='Gagal';st.className='text-red-500 font-bold';}
+}
+
+/* ================================================================
+   REFRESH & STATS
+   ================================================================ */
+async function refreshMedia(){
+  if(!isConnected)return;
+  var icon=document.getElementById('refresh-icon');
+  icon.setAttribute('icon','mdi:loading');icon.style.animation='spin .6s linear infinite';
+  try{
+    var obj=await readMediaJSON();
+    mediaList=(obj.media||[]).sort(function(a,b){return(b.ts||0)-(a.ts||0);});
+    updateStats();renderGallery();
+    console.log('[ECO DB] Loaded',mediaList.length,'items');
+  }catch(e){toast('Gagal memuat: '+e.message,'error');}
+  icon.setAttribute('icon','mdi:refresh');icon.style.animation='';
+}
+
+function updateStats(){
+  var imgs=mediaList.filter(function(m){return m.type==='image';}).length;
+  var vids=mediaList.filter(function(m){return m.type==='video';}).length;
+  var sz=mediaList.reduce(function(s,m){return s+(m.size||0);},0);
+  document.getElementById('st-img').textContent=imgs;
+  document.getElementById('st-vid').textContent=vids;
+  document.getElementById('st-size').textContent=fmtSize(sz);
+  document.getElementById('st-pub').textContent=mediaList.length;
+}
+
+/* ================================================================
+   GALLERY RENDER
+   ================================================================ */
+function getFiltered(){
+  var q=document.getElementById('search-input').value.toLowerCase().trim();
+  return mediaList.filter(function(m){
+    if(currentFilter!=='semua'&&m.type!==currentFilter)return false;
+    if(q&&!(m.label||'').toLowerCase().includes(q)&&!(m.name||'').toLowerCase().includes(q)&&!(m.category||'').toLowerCase().includes(q))return false;
+    return true;
+  });
+}
+
+function renderGallery(){
+  var items=getFiltered();
+  var grid=document.getElementById('gallery-grid');
+  var empty=document.getElementById('empty-state');
+  if(items.length===0){grid.innerHTML='';empty.classList.remove('hidden');return;}
+  empty.classList.add('hidden');
+
+  var h='';
+  items.forEach(function(m){
+    var thumb=m.thumb||m.url;
+    var isV=m.type==='video';
+    var sel=selectedIds.has(m.id);
+
+    h+='<div class="db-card overflow-hidden group'+(sel?' ring-2 ring-brand-gold':'')+'" data-id="'+m.id+'">';
+
+    /* Checkbox */
+    h+='<div class="absolute top-2 left-2 z-10"><input type="checkbox" class="w-4 h-4 rounded accent-yellow-500 cursor-pointer" '+(sel?'checked':'')+' onchange="toggleSel(\''+m.id+'\',this.checked)" onclick="event.stopPropagation()"></div>';
+
+    /* Thumbnail */
+    h+='<div class="relative aspect-square bg-neutral-900 cursor-pointer" onclick="'+(isV?'playVid(\''+m.id+'\')':'openLB(\''+m.id+'\')')+'">';
+    if(thumb){h+='<img src="'+thumb+'" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onerror="this.src=\'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" fill="%23111"><rect width="200" height="200"/><text x="100" y="108" text-anchor="middle" fill="%23333" font-size="11">Error</text></svg>')+'\'">';}
+    else{h+='<div class="w-full h-full flex items-center justify-center"><iconify-icon icon="mdi:image-off-outline" class="text-3xl text-neutral-800"></iconify-icon></div>';}
+    if(isV){h+='<div class="play-icon opacity-0 group-hover:opacity-100 transition-opacity"><iconify-icon icon="mdi:play" class="text-white text-lg" style="margin-left:2px"></iconify-icon></div>';h+='<span class="absolute top-2 right-2 text-[8px] font-bold px-2 py-0.5 rounded bg-brand-red/90 text-white">VIDEO</span>';}
+    h+='</div>';
+
+    /* Info */
+    h+='<div class="p-3">';
+    h+='<p class="text-[11px] font-semibold truncate" title="'+(m.label||m.name)+'">'+(m.label||m.name)+'</p>';
+    h+='<div class="flex items-center justify-between mt-1.5">';
+    h+='<span class="text-[9px] text-neutral-600">'+fmtSize(m.size)+'</span>';
+    h+='<div class="flex items-center gap-0.5">';
+    h+='<button onclick="event.stopPropagation();showDetail(\''+m.id+'\')" class="w-6 h-6 rounded flex items-center justify-center hover:bg-white/10" title="Detail"><iconify-icon icon="mdi:information-outline" class="text-[11px] text-neutral-600 hover:text-brand-gold"></iconify-icon></button>';
+    h+='<button onclick="event.stopPropagation();copyText(\''+m.url+'\')" class="w-6 h-6 rounded flex items-center justify-center hover:bg-white/10" title="Salin URL"><iconify-icon icon="mdi:link-variant" class="text-[11px] text-neutral-600 hover:text-brand-gold"></iconify-icon></button>';
+    h+='<button onclick="event.stopPropagation();deleteOne(\''+m.id+'\')" class="w-6 h-6 rounded flex items-center justify-center hover:bg-red-500/10" title="Hapus"><iconify-icon icon="mdi:delete-outline" class="text-[11px] text-neutral-600 hover:text-red-500"></iconify-icon></button>';
+    h+='</div></div>';
+    h+='<span class="text-[8px] text-neutral-700">'+(m.category||'umum')+' • '+timeAgo(m.ts)+'</span>';
+    h+='</div></div>';
+  });
+  grid.innerHTML=h;
+  updateSelBtn();
+}
+
+/* ================================================================
+   FILTER & SELECT
+   ================================================================ */
+function setFilter(f){
+  currentFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(function(b){if(b.getAttribute('data-f')===f)b.classList.add('active');else b.classList.remove('active');});
+  renderGallery();
+}
+
+function toggleSel(id,checked){if(checked)selectedIds.add(id);else selectedIds.delete(id);updateSelBtn();var c=document.querySelector('[data-id="'+id+'"]');if(c){if(checked)c.classList.add('ring-2','ring-brand-gold');else c.classList.remove('ring-2','ring-brand-gold');}}
+function selectAll(){getFiltered().forEach(function(m){selectedIds.add(m.id);});renderGallery();}
+function deselectAll(){selectedIds.clear();renderGallery();}
+function updateSelBtn(){var n=selectedIds.size;document.getElementById('sel-count').textContent=n;var b=document.getElementById('btn-del-sel');if(n>0){b.classList.remove('hidden');b.classList.add('inline-flex');}else{b.classList.add('hidden');b.classList.remove('inline-flex');}}
+
+/* ================================================================
+   DELETE
+   ================================================================ */
+async function deleteOne(id){
+  var m=mediaList.find(function(x){return x.id===id;});
+  if(!m)return;
+  if(!confirm('Hapus "'+(m.label||m.name)+'" dari repository?'))return;
+  try{
+    await deleteFromGH(m.path);
+    if(m.thumb&&m.thumb.includes('/uploads/thumbs/')){try{await deleteFromGH(m.thumb.replace(/^https:\/\/raw\.githubusercontent\.com\/[^/]+\/[^/]+\/[^/]+\//,''));}catch(e){}}
+    var obj=await readMediaJSON();
+    obj.media=obj.media.filter(function(x){return x.id!==id;});
+    await writeMediaJSON(obj);
+    mediaList=mediaList.filter(function(x){return x.id!==id;});
+    selectedIds.delete(id);updateStats();renderGallery();
+    toast('File dihapus','success');
+  }catch(e){toast('Gagal hapus: '+e.message,'error');}
+}
+
+async function deleteSelected(){
+  var n=selectedIds.size;if(!n)return;
+  if(!confirm('Hapus '+n+' file dari repository?'))return;
+  var ids=Array.from(selectedIds);
+  var ok=0,fail=0;
+  for(var i=0;i<ids.length;i++){
+    try{await deleteOne(ids[i]);ok++;}catch(e){fail++;}
+  }
+  selectedIds.clear();updateStats();renderGallery();
+  toast(ok+' dihapus'+(fail?', '+fail+' gagal':''),'success');
+}
+
+/* ================================================================
+   DETAIL
+   ================================================================ */
+function showDetail(id){
+  var m=mediaList.find(function(x){return x.id===id;});
+  if(!m)return;
+  var b=document.getElementById('detail-body');
+  b.innerHTML=
+    '<div class="space-y-4">'
+    +'<div class="aspect-video rounded-xl overflow-hidden bg-neutral-900">'+(m.thumb||m.url?'<img src="'+(m.thumb||m.url)+'" class="w-full h-full object-contain">':'')+'</div>'
+    +'<div class="space-y-2.5">'
+    +'<div class="flex justify-between"><span class="text-[10px] font-bold text-neutral-500 uppercase">Label</span><span class="text-sm font-semibold text-right max-w-[60%]">'+(m.label||'-')+'</span></div>'
+    +'<div class="flex justify-between"><span class="text-[10px] font-bold text-neutral-500 uppercase">File</span><span class="text-[11px] text-neutral-300 font-mono truncate max-w-[60%] text-right">'+(m.name||'-')+'</span></div>'
+    +'<div class="flex justify-between"><span class="text-[10px] font-bold text-neutral-500 uppercase">Tipe</span><span class="text-sm">'+(m.type||'-')+'</span></div>'
+    +'<div class="flex justify-between"><span class="text-[10px] font-bold text-neutral-500 uppercase">Ukuran</span><span class="text-sm">'+fmtSize(m.size)+'</span></div>'
+    +'<div class="flex justify-between"><span class="text-[10px] font-bold text-neutral-500 uppercase">Kategori</span><span class="text-sm">'+(m.category||'-')+'</span></div>'
+    +'<div><span class="text-[10px] font-bold text-neutral-500 uppercase block mb-1.5">URL Publik</span><div class="code-block" onclick="copyText(\''+m.url+'\')">'+m.url+'</div></div>'
+    +(m.thumb&&m.thumb.startsWith('http')?'<div><span class="text-[10px] font-bold text-neutral-500 uppercase block mb-1.5">Thumbnail</span><div class="code-block" onclick="copyText(\''+m.thumb+'\')">'+m.thumb+'</div></div>':'')
+    +'</div>'
+    +'<div class="flex gap-3 mt-5">'
+    +'<a href="'+m.url+'" target="_blank" class="btn-outline btn-sm flex-1 justify-center text-brand-gold"><iconify-icon icon="mdi:open-in-new" class="text-sm"></iconify-icon> Buka File</a>'
+    +'<button onclick="deleteOne(\''+m.id+'\');closeDetail()" class="btn-danger btn-sm flex-1 justify-center"><iconify-icon icon="mdi:delete-outline" class="text-sm"></iconify-icon> Hapus</button>'
+    +'</div></div>';
+  document.getElementById('detail-modal').classList.add('active');
+}
+function closeDetail(){document.getElementById('detail-modal').classList.remove('active');}
+
+/* ================================================================
+   LIGHTBOX
+   ================================================================ */
+function openLB(id){lbList=mediaList.filter(function(m){return m.type==='image';});lbIndex=lbList.findIndex(function(m){return m.id===id;});if(lbIndex<0)lbIndex=0;renderLB();document.getElementById('lightbox').classList.remove('hidden');document.body.style.overflow='hidden';}
+function renderLB(){if(!lbList.length)return;var m=lbList[lbIndex];document.getElementById('lb-content').innerHTML='<img src="'+m.url+'" class="max-w-full max-h-[80vh] object-contain rounded-lg" style="animation:fadeUp .3s ease" onerror="this.alt=\'Gagal memuat\'">';document.getElementById('lb-title').textContent=m.label||m.name;document.getElementById('lb-meta').textContent=fmtSize(m.size)+' • '+(m.category||'umum');}
+function lbPrev(){lbIndex=(lbIndex-1+lbList.length)%lbList.length;renderLB();}
+function lbNext(){lbIndex=(lbIndex+1)%lbList.length;renderLB();}
+function closeLightbox(){document.getElementById('lightbox').classList.add('hidden');document.body.style.overflow='';}
+
+/* ================================================================
+   VIDEO
+   ================================================================ */
+function playVid(id){var m=mediaList.find(function(x){return x.id===id;});if(!m)return;var v=document.getElementById('vm-video');v.src=m.url;document.getElementById('vm-title').innerHTML='<iconify-icon icon="mdi:play-circle" class="text-brand-red"></iconify-icon> '+(m.label||m.name);document.getElementById('video-modal').classList.add('active');document.body.style.overflow='hidden';v.play().catch(function(){});}
+function closeVideoModal(){var v=document.getElementById('vm-video');v.pause();v.src='';document.getElementById('video-modal').classList.remove('active');document.body.style.overflow='';}
+
+/* Keyboard */
+document.addEventListener('keydown',function(e){
+  if(!document.getElementById('lightbox').classList.contains('hidden')){if(e.key==='ArrowLeft')lbPrev();else if(e.key==='ArrowRight')lbNext();else if(e.key==='Escape')closeLightbox();}
+  if(!document.getElementById('video-modal').classList.contains('hidden')&&e.key==='Escape')closeVideoModal();
+  if(!document.getElementById('detail-modal').classList.contains('active')===false&&e.key==='Escape')closeDetail();
+});
+
+/* ================================================================
+   INIT
+   ================================================================ */
+async function init(){
+  var hasCfg=loadCfg();
+  if(!hasCfg){showNoConn();setBadge(false);return;}
+  var ok=await checkConn();
+  if(ok){
+    document.getElementById('no-conn').style.display='none';
+    await refreshMedia();
+  }
+}
+
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+else init();
+</script>
+</body>
+</html>
